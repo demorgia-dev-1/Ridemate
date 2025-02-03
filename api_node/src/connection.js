@@ -1,21 +1,24 @@
+
 const { MongoClient } = require("mongodb");
-const {dbURL,dbName} = require('../config');
+const { dbURL, dbName } = require("../config");
 
-  const client = new MongoClient(dbURL, { useUnifiedTopology: true, useNewUrlParser: true });
+const client = new MongoClient(dbURL, { useUnifiedTopology: true });
 
-  function Connect() {
-    return new Promise(async (resolve, reject) => {
+let db;
+
+async function Connect() {
+  if (!db) {
     try {
       await client.connect();
-      const db = client.db(dbName);
-      const users = db.collection("users");
-      users.createIndex({ email: 1 }, { unique: true });
-      console.log("Connected to MongoDB!");
-      resolve();
+      db = client.db(dbName);
+      await db.collection("users").createIndex({ email: 1 }, { unique: true });
+      console.log(`Connected to MongoDB: ${dbName}`);
     } catch (error) {
-      console.error("Error connecting to MongoDB", error);
-      reject(error);
+      console.error(" MongoDB Connection Error:", error);
+      process.exit(1);
     }
-  });
   }
-  module.exports = Connect;
+  return db;
+}
+
+module.exports = Connect;
